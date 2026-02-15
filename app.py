@@ -10,20 +10,41 @@ st.write("Enter a topic, notes, or question, and get explanations, summaries, or
 API_KEY = st.secrets["GEMINI_API_KEY"] 
 
 def get_ai_response(prompt):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
+
+    # safer free-tier model
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+
     headers = {"Content-Type": "application/json"}
+
+    # limit token usage (VERY IMPORTANT)
     data = {
         "contents": [
             {"parts": [{"text": prompt}]}
-        ]
+        ],
+        "generationConfig": {
+            "maxOutputTokens": 200,
+            "temperature": 0.6
+        }
     }
 
-    response = requests.post(url, headers=headers, json=data)
-    if response.status_code == 200:
-        result = response.json()
-        return result["candidates"][0]["content"]["parts"][0]["text"]
-    else:
-        return f"Error: {response.status_code} - {response.text}"
+    try:
+        response = requests.post(url, headers=headers, json=data, timeout=30)
+
+        if response.status_code == 200:
+            result = response.json()
+            return result["candidates"][0]["content"]["parts"][0]["text"]
+
+        elif response.status_code == 429:
+            return "⚠️ AI usage limit reached temporarily. Please try again later."
+
+        else:
+            return f"API Error {response.status_code}"
+
+    except requests.exceptions.Timeout:
+        return "⚠️ AI response timed out. Please retry."
+
+    except Exception:
+        return "⚠️ Something went wrong while contacting AI service."
 
 
 user_input = st.text_area("Enter your topic or study notes:")
