@@ -12,7 +12,7 @@ API_KEY = st.secrets["GEMINI_API_KEY"]
 def get_ai_response(prompt):
 
     # safer free-tier model
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={API_KEY}"
 
     headers = {"Content-Type": "application/json"}
 
